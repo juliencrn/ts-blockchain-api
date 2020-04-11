@@ -22,6 +22,8 @@ module.exports = {
       "plugin:@typescript-eslint/recommended-requiring-type-checking"
     ],
     "rules": {
+        "@typescript-eslint/member-delimiter-style": "off",
+        "@typescript-eslint/camelcase": "off",
         "prettier/prettier": "error",
     }
   };
