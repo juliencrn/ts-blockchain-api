@@ -12,7 +12,7 @@ class Blockchain {
         this.current_transactions = []
 
         // Create the genesis block
-        this.new_block(1)
+        this.new_block(1, 'initial_genesis_hash')
     }
 
     // Create a new Block in the Blockchain
@@ -40,10 +40,8 @@ class Blockchain {
     }
 
     static hash(block: Block): string {
-        return crypto
-            .createHash('sha256')
-            .update(JSON.stringify(block))
-            .digest('hex')
+        const block_string = JSON.stringify(block)
+        return crypto.createHash('sha256').update(block_string).digest('hex')
     }
 
     get last_block(): Block {
