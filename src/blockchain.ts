@@ -49,6 +49,29 @@ class Blockchain {
     get last_block(): Block {
         return this.chain[this.chain.length - 1]
     }
+
+    // Simple proof of work
+    static proof_of_work(last_proof: number): number {
+        let proof = 0
+        while (!Blockchain.valid_proof(last_proof, proof)) {
+            proof += 1
+        }
+        return proof
+    }
+
+    // Validates the proof: Does hash(last_proof, proof) contain 4 leading 0
+    static valid_proof(last_proof: number, proof: number): boolean {
+        const guess = JSON.stringify(`${last_proof}${proof}`)
+        const guess_hash = crypto
+            .createHash('sha256')
+            .update(guess)
+            .digest('hex')
+        const lastFourChars = guess_hash.slice(
+            guess_hash.length - 5,
+            guess_hash.length - 1
+        )
+        return lastFourChars === '0000'
+    }
 }
 
 export default Blockchain
