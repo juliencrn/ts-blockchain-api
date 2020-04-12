@@ -7,16 +7,20 @@
   "license": "MIT",
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "nodemon src/index.ts 3000",
+    "dev": "nodemon src/index.ts",
     "tsc": "tsc",
+    "build": "yarn clear-dist && yarn tsc",
     "tsc:watch": "tsc -w",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "clear-dist": "rm -Rf dist/*"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "express": "^4.17.1",
     "uuid": "^7.0.3"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/express": "^4.17.6",
     "@types/node": "^13.11.1",
     "@types/uuid": "^7.0.2",

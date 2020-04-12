@@ -1,7 +1,3 @@
 {
-    "files.exclude": {
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/yarn-error.log": true
-    }
+    "files.exclude": {}
 }

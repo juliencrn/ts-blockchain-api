@@ -1,4 +1,6 @@
 import crypto from 'crypto'
+import axios, { AxiosResponse } from 'axios'
+import * as url from 'url'
 
 import { Transaction, Block } from './types'
 
@@ -6,6 +8,9 @@ class Blockchain {
     chain: Block[] = []
 
     current_transactions: Transaction[] = []
+
+    // Others nodes for mine decentralization
+    nodes = []
 
     constructor() {
         this.chain = []
@@ -69,6 +74,90 @@ class Blockchain {
             guess_hash.length - 1
         )
         return lastFourChars === '0000'
+    }
+
+    // Add a new node to the list of nodes
+    register_node(address: string): void {
+        const parsedUrl = url.parse(address)
+        if (parsedUrl?.hostname) {
+            const { hostname, port, protocol } = parsedUrl
+            const addressUrl: string = port
+                ? `${hostname}:${port}`
+                : `${hostname}`
+
+            const nodeUrl = `${protocol}//${addressUrl.replace(
+                'localhost',
+                '127.0.0.1'
+            )}`
+            if (!this.nodes.includes(nodeUrl as never)) {
+                this.nodes.push(nodeUrl as never)
+            }
+        }
+    }
+
+    // Determine if a given blockchain is valid
+    static valid_chain(chain: Block[]): boolean {
+        let last_block = chain[0]
+
+        // eslint-disable-next-line consistent-return
+        chain.forEach((block: Block, index: number) => {
+            // Jump first block
+            if (index > 0) {
+                // Check that the hash of the block is correct
+                if (block.previous_hash !== Blockchain.hash(last_block)) {
+                    return false
+                }
+
+                // Check that the Proof of Work is correct
+                if (!Blockchain.valid_proof(last_block.proof, block.proof)) {
+                    return false
+                }
+
+                last_block = block
+            }
+        })
+
+        return true
+    }
+
+    // This is our Consensus Algorithm, it resolves conflicts
+    // by replacing our chain with the longest one in the network.
+    // :return: <bool> True if our chain was replaced, False if not
+    async resolve_conflicts(): Promise<boolean> {
+        const neighbors = this.nodes
+        let new_chain
+
+        // We're only looking for chains longer than ours
+        let max_length = this.chain.length
+
+        // Grab and verify the chains from all the nodes in our network
+        for (let i = 0; i < neighbors.length; i += 1) {
+            const neighbor: string = neighbors[i]
+
+            interface ChainRes {
+                chain: Block[]
+                length: number
+            }
+
+            // eslint-disable-next-line no-await-in-loop
+            const res: AxiosResponse<ChainRes> = await axios.get(
+                `${neighbor}/chain`
+            )
+
+            if (res.status === 200) {
+                const { chain, length } = res.data
+                if (length > max_length && Blockchain.valid_chain(chain)) {
+                    max_length = length
+                    new_chain = chain
+                }
+            }
+        }
+
+        if (new_chain) {
+            this.chain = new_chain
+            return true
+        }
+        return false
     }
 }
 

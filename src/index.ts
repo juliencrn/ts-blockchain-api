@@ -59,6 +59,43 @@ app.get('/chain', (req: Request, res: Response) => {
     })
 })
 
+app.post('/nodes/register', (req: Request, res: Response) => {
+    const { nodes } = req.body
+
+    if (!nodes) {
+        res.status(400).json({
+            message: 'Error: Please supply a valid list of nodes'
+        })
+    }
+
+    nodes.forEach((node: string) => {
+        blockchain.register_node(node)
+    })
+
+    res.status(201).json({
+        message: 'New nodes haves been added',
+        total_nodes: blockchain.nodes.length,
+        nodes: blockchain.nodes
+    })
+})
+
+app.get('/nodes/resolve', (req: Request, res: Response) => {
+    blockchain.resolve_conflicts().then((replaced) => {
+        console.log({ replaced, nodes: blockchain.nodes })
+        if (replaced) {
+            res.status(200).json({
+                message: 'Our chain was replaced',
+                new_chain: blockchain.chain
+            })
+        } else {
+            res.status(200).json({
+                message: 'Our chain is authoritative',
+                chain: blockchain.chain
+            })
+        }
+    })
+})
+
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`)
 })
